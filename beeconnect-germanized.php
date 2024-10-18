@@ -38,15 +38,34 @@ class Beeconnect_Billbee_Shipping_Data_Update {
                 return $order;
             }
 
-            $shipping_info = $order->get_meta('_shipping_info_1');
-
+            $request_body = $request->get_body();
             $order_id = $order->get_id();
+
+            if ( empty( $request_body ) ) {
+                return $order;
+            }
+
+            $request_body = json_decode($request_body);
+
+            if ( empty($request_body->meta_data) ) {
+                return $order;
+            }
+
+            $shipping_info = [];
+            foreach ($request_body->meta_data as $meta_data) {
+                if ($meta_data->key === '_shipping_info_1' &&
+                    !empty( $meta_data->value->shipper_name ) &&
+                    !empty( $meta_data->value->tracking_number )
+                ) {
+                    $shipping_info['shipper_name'] = $meta_data->value->shipper_name;
+                    $shipping_info['tracking_number'] = $meta_data->value->tracking_number;
+                }
+            }
 
             if ( empty( $shipping_info ) ||
                 empty($shipping_info['shipper_name']) ||
                 empty($shipping_info['tracking_number'])
             ) {
-                $logger->error("Order ID: $order_id - Shipping provider or tracking ID not found in request.", ['source' => 'beeconnect-germanized']);
                 return $order;
             }
 
