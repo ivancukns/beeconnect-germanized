@@ -38,12 +38,14 @@ class Beeconnect_Billbee_Shipping_Data_Update {
                 return $order;
             }
 
-            $shipping_provider = $order->get_meta('ShipperName');
-            $tracking_id = $order->get_meta('TrackingNumber');
+            $shipping_info = $order->get_meta('_shipping_info_1');
 
             $order_id = $order->get_id();
 
-            if ( empty( $shipping_provider ) || empty( $tracking_id ) ) {
+            if ( empty( $shipping_info ) ||
+                empty($shipping_info['shipper_name']) ||
+                empty($shipping_info['tracking_number'])
+            ) {
                 $logger->error("Order ID: $order_id - Shipping provider or tracking ID not found in request.", ['source' => 'beeconnect-germanized']);
                 return $order;
             }
@@ -61,7 +63,7 @@ class Beeconnect_Billbee_Shipping_Data_Update {
             }
             $shipment = $shipments[0];
 
-            $shipment = $this->update_shipment_data( $shipment, $shipping_provider, $tracking_id);
+            $shipment = $this->update_shipment_data( $shipment, $shipping_info['shipper_name'], $shipping_info['tracking_number']);
             $this->send_germanized_shipped_email( $shipment );
 
         }
