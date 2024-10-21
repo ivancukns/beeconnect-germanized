@@ -69,6 +69,8 @@ class Beeconnect_Billbee_Shipping_Data_Update {
                 return $order;
             }
 
+            $shipping_info['shipper_name'] = $this->map_shipping_provider($shipping_info['shipper_name']);
+
             $order_shipment = wc_gzd_get_shipment_order( $order );
             if ( false === $order_shipment) {
                 $logger->error("Order ID: $order_id - Germanized shipment order couldnt be retrieved", ['source' => 'beeconnect-germanized']);
@@ -87,6 +89,25 @@ class Beeconnect_Billbee_Shipping_Data_Update {
 
         }
         return $order;
+    }
+
+    /**
+     * Map the incoming shipping provider code
+     * to the shipping provider code in the woo-shop.
+     * Left are codes from Billbee, right are codes in the Woo-Shop
+     *
+     * @param string $shipping_provider
+     * @return string
+     */
+    private function map_shipping_provider(string $shipping_provider): string
+    {
+        return match ($shipping_provider) {
+            'other', 'dhl' => 'dhl',
+            'ups' => 'ups',
+            'gls' => 'gls',
+            'dpd' => 'dpd',
+            default => 'billbee',
+        };
     }
 
     /**
